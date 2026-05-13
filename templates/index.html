@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chatbot Psikologi - Teman Curhat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-header">
+      <div>
+        <h1>Chatbot Psikologi</h1>
+        <p>Teman curhat yang dengerin dulu, lalu kasih analisis hanya kalau kamu minta.</p>
+      </div>
+      <div class="theme-picker">
+        <label for="theme-select">Pilih persona:</label>
+        <select id="theme-select">
+          {% for key, label in themes %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button id="reset-button">Reset</button>
+      </div>
+    </div>
+
+    <div id="chat-window" class="chat-window"></div>
+
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" placeholder="Ceritain apa yang pengen kamu curhat..." autocomplete="off">
+      <button type="submit">Kirim</button>
+    </form>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
