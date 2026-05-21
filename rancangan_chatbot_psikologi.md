@@ -89,3 +89,4 @@ knowledge_base = {
 5. **Bertanya**: Bot mengajukan `pertanyaan` dari G1 menggunakan gaya bahasa santai.
 6. **Iterasi**: Ulangi sampai ada konklusi atau semua gejala penting terjawab.
 7. **Solusi**: Keluarkan rekomendasi.
+![alt text](image.png)

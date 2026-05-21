@@ -1,6 +1,16 @@
 import re
 import random
+import time
 from typing import Dict, List, Optional, Tuple
+
+# Import new modules
+from emotion_analyzer import MicroEmotionDetector, DetailExtractor
+from emotional_memory import (
+    EmotionalMemory, 
+    ConversationStageManager, 
+    ContextWindow
+)
+from response_builder import DynamicResponseBuilder
 
 
 class ThemeManager:
@@ -470,6 +480,18 @@ class CurhatBot:
 
         self.engine = InferenceEngine(self.kb)
 
+        # ============= NEW SYSTEMS =============
+        self.emotion_detector = MicroEmotionDetector()
+        self.detail_extractor = DetailExtractor()
+        self.emotional_memory = EmotionalMemory()
+        self.stage_manager = ConversationStageManager()
+        self.response_builder = DynamicResponseBuilder()
+        self.context_window = ContextWindow(window_size=5)
+
+        # Typing simulator config
+        self.min_typing_time = 0.5
+        self.max_typing_time = 2.0
+
     # =====================================================
     # BASIC HELPERS
     # =====================================================
@@ -904,177 +926,92 @@ class CurhatBot:
     # =====================================================
 
     def process_message(self, text: str):
+        """
+        Process user message using new multi-layered system.
+        
+        Flow:
+        1. Detect micro emotions and implied emotions
+        2. Extract key details from message
+        3. Update emotional memory
+        4. Determine conversation stage
+        5. Build contextual response
+        6. Apply typing simulation
+        """
 
         text = text.strip()
 
-        self.state.record_message(
-            'user',
-            text
+        # Record message
+        self.state.record_message('user', text)
+
+        # ================================================
+        # 1. DETECT EMOTIONS
+        # ================================================
+
+        micro_emotions = self.emotion_detector.get_dominant_emotions(text)
+        implied_emotions = self.emotion_detector.get_implied_emotions(text)
+        severity = self.emotion_detector.get_emotion_severity(text)
+
+        # ================================================
+        # 2. EXTRACT DETAILS
+        # ================================================
+
+        details = self.detail_extractor.extract_details(text)
+        keywords = self.detail_extractor.get_key_words(text)
+
+        # ================================================
+        # 3. UPDATE EMOTIONAL MEMORY
+        # ================================================
+
+        self.emotional_memory.record_message(
+            text,
+            micro_emotions,
+            implied_emotions,
+            details
         )
 
         # ================================================
-        # ANALYSIS PERMISSION FLOW
+        # 4. UPDATE CONVERSATION STAGE
         # ================================================
 
-        if self.state.analysis_requested and not self.state.analysis_shared:
+        if self.emotional_memory.should_advance_stage():
+            self.emotional_memory.advance_stage()
+            self.stage_manager.advance()
 
-            if self._is_positive_answer(text):
-
-                self.state.analysis_shared = True
-
-                analysis = self.get_analysis_text()
-
-                self.state.record_message(
-                    'bot',
-                    analysis
-                )
-
-                return analysis
-
-            if self._is_negative_answer(text):
-
-                response = self.theme['ask_later']
-
-                self.state.record_message(
-                    'bot',
-                    response
-                )
-
-                return response
-
-            if self._wants_solution(text):
-
-                solution = self.get_solution_text()
-
-                self.state.analysis_shared = True
-
-                self.state.record_message(
-                    'bot',
-                    solution
-                )
-
-                return solution
+        current_stage = self.emotional_memory.conversation_stage
 
         # ================================================
-        # DETECT FACTS
+        # 5. BUILD RESPONSE
         # ================================================
 
-        matched_facts = self.kb.match_keywords(text)
-
-        self.state.update_facts(matched_facts)
-
-        # ================================================
-        # STORY COUNT
-        # ================================================
-
-        self.state.user_story_count += 1
-
-        # ================================================
-        # DETECT EMOTION
-        # ================================================
-
-        emotion = self._detect_emotion_context(text)
-
-        if emotion:
-
-            self.state.current_emotion = emotion
-
-        # ================================================
-        # DETECT TOPIC
-        # ================================================
-
-        topic = self._detect_topic(text)
-
-        if topic:
-
-            self.state.last_topic = topic
-
-        # ================================================
-        # PHASE 1 — DENGERIN DULU
-        # ================================================
-
-        if self.state.user_story_count <= 3:
-
-            response = self._generate_reflective_response(text)
-
-            self.state.record_message(
-                'bot',
-                response
-            )
-
-            return response
-
-        # ================================================
-        # PHASE 2 — MULAI ANALISIS PELAN
-        # ================================================
-
-        if not self.state.ready_for_analysis:
-
-            candidate = self.engine.best_candidate(
-                self.state.facts
-            )
-
-            if candidate and candidate['score'] >= 0.4:
-
-                self.state.ready_for_analysis = True
-
-        if self.state.ready_for_analysis:
-
-            if not self.state.analysis_requested:
-
-                self.state.analysis_requested = True
-
-                response = (
-                    "Aku mulai nangkep pola dari cerita kamu sejauh ini. "
-                    "Tapi aku masih pengen ngerti sedikit lagi "
-                    "biar nggak salah nangkep.\n\n"
-                )
-
-                question = self._target_question()
-
-                if question:
-                    response += question
-
-                self.state.record_message(
-                    'bot',
-                    response
-                )
-
-                return response
-
-        # ================================================
-        # PHASE 3 — PERTANYAAN LANJUT
-        # ================================================
-
-        question = self._target_question()
-
-        if question:
-
-            self.state.record_message(
-                'bot',
-                question
-            )
-
-            return question
-
-        supportive = self._pick_supportive()
-
-        self.state.record_message(
-            'bot',
-            supportive
+        response = self.response_builder.build_response(
+            text,
+            self.emotional_memory,
+            current_stage
         )
 
-        return supportive
+        # ================================================
+        # 6. RECORD & RETURN
+        # ================================================
+
+        self.state.record_message('bot', response)
+        self.context_window.add_message('user', text, micro_emotions)
+        self.context_window.add_message('bot', response, [])
+
+        return response
 
     # =====================================================
     # RESET
     # =====================================================
 
     def reset(self):
-
+        """Reset all systems for new conversation"""
         self.state = SessionState()
-
         self.engine = InferenceEngine(self.kb)
+        
+        # Reset new systems
+        self.emotional_memory = EmotionalMemory()
+        self.stage_manager = ConversationStageManager()
+        self.context_window = ContextWindow(window_size=5)
 
 
 # =========================================================
