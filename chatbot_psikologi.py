@@ -12,6 +12,15 @@ from emotional_memory import (
 )
 from response_builder import DynamicResponseBuilder
 
+# Import NEW Advanced System (v2)
+try:
+    from advanced_response_builder import AdvancedResponseBuilder
+    from reasoning_engine import ReasoningEngine
+    ADVANCED_SYSTEM_AVAILABLE = True
+except ImportError:
+    ADVANCED_SYSTEM_AVAILABLE = False
+    print("[WARNING] Advanced Response System not available, using legacy system")
+
 
 class ThemeManager:
 
@@ -470,7 +479,7 @@ class InferenceEngine:
 
 class CurhatBot:
 
-    def __init__(self, theme_name='teman_curhat'):
+    def __init__(self, theme_name='teman_curhat', use_advanced_system=True):
 
         self.theme = ThemeManager.get_theme(theme_name)
 
@@ -487,7 +496,13 @@ class CurhatBot:
         self.stage_manager = ConversationStageManager()
         self.response_builder = DynamicResponseBuilder()
         self.context_window = ContextWindow(window_size=5)
-
+        
+        # ============= ADVANCED SYSTEM v2 =============
+        self.use_advanced_system = use_advanced_system and ADVANCED_SYSTEM_AVAILABLE
+        if self.use_advanced_system:
+            self.advanced_response_builder = AdvancedResponseBuilder()
+            self.reasoning_engine = ReasoningEngine()
+        
         # Typing simulator config
         self.min_typing_time = 0.5
         self.max_typing_time = 2.0
@@ -927,41 +942,74 @@ class CurhatBot:
 
     def process_message(self, text: str):
         """
-        Process user message using new multi-layered system.
+        Process user message - USE ADVANCED SYSTEM IF AVAILABLE
         
-        Flow:
-        1. Detect micro emotions and implied emotions
-        2. Extract key details from message
-        3. Update emotional memory
-        4. Determine conversation stage
-        5. Build contextual response
-        6. Apply typing simulation
+        Advanced System (v2) Flow:
+        1. Comprehensive analysis: topic + situation + emotion + intent + fear
+        2. Reasoning engine synthesis
+        3. Response mode selection (LISTENING/UNDERSTANDING/GUIDANCE/ADVICE)
+        4. Advanced response builder with contextual intelligence
+        
+        Fallback to legacy system if advanced system not available.
         """
 
         text = text.strip()
 
         # Record message
         self.state.record_message('user', text)
-
+        
         # ================================================
-        # 1. DETECT EMOTIONS
+        # USE ADVANCED SYSTEM (v2) IF AVAILABLE
+        # ================================================
+        
+        if self.use_advanced_system:
+            try:
+                # Prepare conversation history
+                conversation_history = []
+                for speaker, msg in self.state.history[:-1]:  # Exclude current message
+                    if speaker == 'user':
+                        conversation_history.append({
+                            'role': 'user',
+                            'message': msg
+                        })
+                    else:
+                        conversation_history.append({
+                            'role': 'bot',
+                            'message': msg
+                        })
+                
+                # Generate response using ADVANCED SYSTEM
+                response = self.advanced_response_builder.generate_response(
+                    user_message=text,
+                    conversation_history=conversation_history,
+                    emotional_memory=self.emotional_memory
+                )
+                
+                # Update conversation history
+                self.state.record_message('bot', response)
+                self.context_window.add_message('user', text, [])
+                self.context_window.add_message('bot', response, [])
+                
+                return response
+            
+            except Exception as e:
+                print(f"[WARNING] Advanced system error: {str(e)}, falling back to legacy")
+                self.use_advanced_system = False
+        
+        # ================================================
+        # FALLBACK: USE LEGACY SYSTEM
         # ================================================
 
+        # Detect emotions
         micro_emotions = self.emotion_detector.get_dominant_emotions(text)
         implied_emotions = self.emotion_detector.get_implied_emotions(text)
         severity = self.emotion_detector.get_emotion_severity(text)
 
-        # ================================================
-        # 2. EXTRACT DETAILS
-        # ================================================
-
+        # Extract details
         details = self.detail_extractor.extract_details(text)
         keywords = self.detail_extractor.get_key_words(text)
 
-        # ================================================
-        # 3. UPDATE EMOTIONAL MEMORY
-        # ================================================
-
+        # Update emotional memory
         self.emotional_memory.record_message(
             text,
             micro_emotions,
@@ -969,30 +1017,21 @@ class CurhatBot:
             details
         )
 
-        # ================================================
-        # 4. UPDATE CONVERSATION STAGE
-        # ================================================
-
+        # Update conversation stage
         if self.emotional_memory.should_advance_stage():
             self.emotional_memory.advance_stage()
             self.stage_manager.advance()
 
         current_stage = self.emotional_memory.conversation_stage
 
-        # ================================================
-        # 5. BUILD RESPONSE
-        # ================================================
-
+        # Build response using legacy builder
         response = self.response_builder.build_response(
             text,
             self.emotional_memory,
             current_stage
         )
 
-        # ================================================
-        # 6. RECORD & RETURN
-        # ================================================
-
+        # Record & return
         self.state.record_message('bot', response)
         self.context_window.add_message('user', text, micro_emotions)
         self.context_window.add_message('bot', response, [])
@@ -1012,6 +1051,11 @@ class CurhatBot:
         self.emotional_memory = EmotionalMemory()
         self.stage_manager = ConversationStageManager()
         self.context_window = ContextWindow(window_size=5)
+        
+        # Reset advanced systems if available
+        if self.use_advanced_system:
+            self.advanced_response_builder = AdvancedResponseBuilder()
+            self.reasoning_engine = ReasoningEngine()
 
 
 # =========================================================

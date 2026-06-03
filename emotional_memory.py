@@ -6,13 +6,13 @@ Emotional Memory System
 - Enables contextual response generation
 """
 
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set, Optional, Tuple
 from collections import defaultdict
 from datetime import datetime
 
 
 class EmotionalMemory:
-    """Tracks emotional patterns and context"""
+    """Tracks emotional patterns and context with progressive understanding"""
 
     def __init__(self):
         # Core emotional state tracking
@@ -41,15 +41,30 @@ class EmotionalMemory:
         
         # Conversation history for context
         self.message_history: List[Dict] = []
+        
+        # PROGRESSIVE UNDERSTANDING TRACKING
+        self.topic_consistency: Dict[str, int] = defaultdict(int)  # Track main topics
+        self.context_coherence_score: float = 1.0  # How coherent conversation is
+        self.understanding_depth: int = 0  # 0-5 depth level
+        self.linked_contexts: List[Tuple[str, str]] = []  # Contexts that relate to each other
+        
+        # THIRD MESSAGE RULE TRACKING
+        self.message_count: int = 0
+        self.has_given_interpretation: bool = False
+        self.ready_for_interpretation: bool = False
 
     def record_message(
         self,
         text: str,
         emotions: List[tuple],
         implied_emotions: List[str],
-        details: Dict
+        details: Dict,
+        topic: Optional[str] = None,
+        situations: List[str] = None
     ):
         """Record a user message with emotional analysis"""
+        
+        self.message_count += 1
         
         # Track primary emotions
         for emotion_name, confidence in emotions:
@@ -82,12 +97,28 @@ class EmotionalMemory:
                for e in emotions):
             self.attachment_indicators['anxious_attachment'] += 1
         
+        # PROGRESSIVE TRACKING: Track topic consistency
+        if topic:
+            self.topic_consistency[topic] += 1
+            self._update_understanding_depth(topic, situations or [])
+        
+        # PROGRESSIVE TRACKING: Check if contexts are linked
+        if situations and self.message_count > 1:
+            for situation in situations:
+                self._check_context_linking(situation)
+        
+        # THIRD MESSAGE RULE: Check if ready for interpretation
+        if self.message_count >= 3 and not self.has_given_interpretation:
+            self.ready_for_interpretation = self._check_interpretation_readiness()
+        
         # Store message record
         self.message_history.append({
             'text': text,
             'emotions': emotions,
             'implied': implied_emotions,
             'details': details,
+            'topic': topic,
+            'situations': situations or [],
             'timestamp': datetime.now().isoformat()
         })
         
@@ -103,6 +134,112 @@ class EmotionalMemory:
                 'emotion': dominant_emotion,
                 'intensity': emotions[0][1] if emotions else 0
             })
+    
+    def _update_understanding_depth(self, topic: str, situations: List[str]):
+        """Update understanding depth based on new topic/situations"""
+        # Increase depth with more specific information
+        if situations:
+            self.understanding_depth = min(self.understanding_depth + len(situations), 5)
+        else:
+            self.understanding_depth = min(self.understanding_depth + 1, 5)
+    
+    def _check_context_linking(self, situation: str):
+        """Check if current situation links to previous contexts"""
+        if len(self.message_history) < 2:
+            return
+        
+        # Get previous situations mentioned
+        previous_situations = set()
+        for msg_record in self.message_history[:-1]:
+            previous_situations.update(msg_record.get('situations', []))
+        
+        # If current situation is related to previous ones, mark as linked
+        if situation in previous_situations or any(
+            self._is_situation_related(situation, prev_sit)
+            for prev_sit in previous_situations
+        ):
+            if previous_situations:
+                self.linked_contexts.append((
+                    list(previous_situations)[0],
+                    situation
+                ))
+                self.context_coherence_score = min(self.context_coherence_score + 0.2, 1.0)
+    
+    def _is_situation_related(self, sit1: str, sit2: str) -> bool:
+        """Check if two situations are related"""
+        # Simple heuristic: same topic category
+        relationship_groups = {
+            'romance': ['breakup', 'relationship_distance', 'relationship_conflict', 'partner_cheating'],
+            'academics': ['exam_coming', 'bad_grades', 'school_payment', 'school_dropout'],
+            'career': ['job_stress', 'job_conflict', 'job_loss', 'interview_fail'],
+            'appearance': ['acne_problem', 'teeth_problem', 'weight_concern', 'beauty_insecurity'],
+            'family': ['parent_pressure', 'family_conflict', 'parent_unsupported'],
+            'friendship': ['friend_abandoned', 'friend_betrayal', 'friend_conflict', 'no_friends'],
+            'finance': ['debt_problem', 'insufficient_money'],
+            'future': ['uncertain_future', 'future_anxiety'],
+        }
+        
+        for group, situations in relationship_groups.items():
+            if sit1 in situations and sit2 in situations:
+                return True
+        
+        return False
+    
+    def _check_interpretation_readiness(self) -> bool:
+        """
+        Check if bot is ready to give interpretation (third message rule).
+        Requires: 2+ linked contexts OR 1 situation + 1 strong fear
+        """
+        if len(self.linked_contexts) >= 1:
+            return True
+        
+        # Check if have multiple situations or fear + emotion
+        recent_situations = set()
+        for msg_record in self.message_history[-3:]:
+            recent_situations.update(msg_record.get('situations', []))
+        
+        has_multiple_situations = len(recent_situations) >= 2
+        has_fears = len(self.repeated_themes) >= 2
+        has_strong_emotion = any(count >= 2 for count in self.primary_emotions.values())
+        
+        return (has_multiple_situations) or (has_fears and has_strong_emotion)
+    
+    def mark_interpretation_given(self):
+        """Mark that interpretation has been given"""
+        self.has_given_interpretation = True
+
+    def get_main_topic(self) -> Optional[str]:
+        """Get the most consistent topic throughout conversation"""
+        if not self.topic_consistency:
+            return None
+        
+        return max(self.topic_consistency.items(), key=lambda x: x[1])[0]
+    
+    def is_topic_consistent(self, new_topic: Optional[str]) -> bool:
+        """Check if new topic is consistent with main topic"""
+        main_topic = self.get_main_topic()
+        
+        if not main_topic or not new_topic:
+            return True  # Allow if no previous topic
+        
+        # If same topic, always consistent
+        if new_topic == main_topic:
+            return True
+        
+        # Otherwise inconsistent
+        return False
+    
+    def get_understanding_progression(self) -> Dict:
+        """Get how understanding has progressed"""
+        return {
+            'message_count': self.message_count,
+            'understanding_depth': self.understanding_depth,  # 0-5
+            'context_coherence': self.context_coherence_score,  # 0-1
+            'linked_contexts_count': len(self.linked_contexts),
+            'is_ready_for_interpretation': self.ready_for_interpretation,
+            'has_interpreted': self.has_given_interpretation,
+            'main_topic': self.get_main_topic(),
+        }
 
     def get_dominant_emotions(self, top_n: int = 3) -> List[tuple]:
         """Get most frequent emotions detected"""
