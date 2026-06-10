@@ -26,6 +26,70 @@ class TopicDetector:
     """
     
     def __init__(self):
+        self.strong_topic_signals = {
+            'relationship': [
+                'pacar', 'partner', 'pasangan', 'putus', 'mantan', 'selingkuh',
+            ],
+            'education': [
+                'ujian', 'sekolah', 'kuliah', 'kampus', 'nilai', 'raport', 'dosen', 'guru',
+            ],
+            'career': [
+                'kerja', 'pekerjaan', 'kantor', 'atasan', 'boss', 'bos', 'interview', 'resign', 'phk',
+            ],
+            'finance': [
+                'uang', 'duit', 'hutang', 'utang', 'cicilan', 'tagihan', 'bayar',
+            ],
+            'family': [
+                'orang tua', 'ortu', 'ayah', 'ibu', 'mama', 'papa', 'keluarga',
+                'di rumah', 'anak orang lain', 'dibandingkan', 'dibandingin',
+                'dibanding terus', 'dituntut sukses', 'takut pulang',
+            ],
+            'friendship': [
+                'teman', 'sahabat', 'circle', 'sirkel', 'grup', 'pertemanan',
+                'numpang ada', 'masuk obrolan', 'masuk percakapan', 'ngobrol',
+                'nongkrong', 'dikucilkan', 'dijauhi',
+            ],
+            'self_esteem': [
+                'nggak layak', 'gak layak', 'tidak layak', 'nggak cukup',
+                'tidak cukup', 'minder', 'nilai diri',
+            ],
+            'appearance': [
+                'jerawat', 'acne', 'gendut', 'gemuk', 'kurus', 'wajah',
+                'gigi', 'kulit', 'rambut', 'penampilan', 'bentuk tubuh',
+            ],
+            'loneliness': [
+                'kesepian', 'merasa sendiri', 'tidak ada siapa-siapa',
+                'nggak ada yang ngerti', 'tidak punya tempat cerita',
+                'kosong meskipun ada teman',
+            ],
+            'health': [
+                'sakit', 'dokter', 'rumah sakit', 'insomnia', 'tidak bisa tidur',
+                'susah tidur', 'kesehatan', 'psikolog',
+            ],
+            'future': [
+                'masa depan', 'arah hidup', 'tujuan hidup', 'salah jalan',
+                'belum tahu mau jadi apa', 'karier ke depan', 'takut tertinggal',
+            ],
+        }
+
+        self.general_topic_signals = {
+            'future': ['bingung', 'takut', 'khawatir', 'cemas', 'tidak tahu', 'nggak tahu'],
+            'health': ['capek', 'lelah', 'stres', 'stress', 'panik'],
+            'self_esteem': ['percaya diri', 'insecure', 'ragu'],
+            'loneliness': ['sendiri', 'sendirian', 'sepi'],
+            'appearance': ['malu'],
+            'family': ['rumah'],
+            'friendship': ['mereka', 'diam'],
+        }
+
+        self.topic_conflicts = {
+            'future': ['teman', 'circle', 'sirkel', 'numpang ada', 'masuk obrolan', 'di rumah', 'anak orang lain', 'dibandingkan', 'dibandingin'],
+            'appearance': ['circle', 'sirkel', 'numpang ada', 'teman', 'masuk obrolan', 'di rumah', 'anak orang lain'],
+            'self_esteem': ['circle', 'sirkel', 'numpang ada', 'di rumah', 'anak orang lain'],
+            'loneliness': ['di rumah', 'anak orang lain', 'orang tua', 'ayah', 'ibu'],
+            'friendship': ['di rumah', 'anak orang lain', 'orang tua', 'ayah', 'ibu'],
+        }
+
         self.topic_patterns = {
             'relationship': {
                 'keywords': [
@@ -121,6 +185,8 @@ class TopicDetector:
                     'tekanan', 'pressure', 'ekspektasi',
                     'tidak dimengerti', 'diabaikan', 'dimarahi',
                     'mengecewakan', 'tidak bisa', 'kecewa',
+                    'dibandingkan', 'dibandingin', 'anak orang lain',
+                    'di rumah', 'dituntut sukses', 'takut pulang',
                 ],
                 'patterns': [
                     r'(orang tua|ibu|ayah|mama|papa).{0,35}(marah|nggak|tidak).{0,25}(setuju|senang|mendukung)',
@@ -128,6 +194,9 @@ class TopicDetector:
                     r'(tekanan|pressure|ekspektasi).{0,30}(dari|orang tua|keluarga)',
                     r'(orang tua|keluarga).{0,30}(tidak|nggak|gak).{0,25}(mengerti|support|dukung)',
                     r'(merasa|feel).{0,20}(diabaikan|ditolak).{0,20}(keluarga|orang tua)',
+                    r'(dibandingkan|dibandingin|dibanding).{0,40}(anak orang lain|orang lain)',
+                    r'(di rumah|rumah).{0,40}(dibandingkan|dibandingin|dibanding|dituntut|dimarahi)',
+                    r'(dibandingkan|dibandingin|dibanding).{0,40}(di rumah|keluarga|orang tua|ayah|ibu)',
                 ],
                 'confidence': 0.9
             },
@@ -142,6 +211,8 @@ class TopicDetector:
                     'gossip', 'gosip', 'dibicarain', 'diejek',
                     'tidak ada teman', 'sendirian', 'aja',
                     'backing stab', 'stabbed', 'betrayed', 'dikhianati',
+                    'circle', 'sirkel', 'numpang ada', 'masuk obrolan',
+                    'masuk percakapan', 'ngobrol', 'nongkrong',
                 ],
                 'patterns': [
                     r'(teman|sahabat|bestie).{0,35}(jauh|dingin|berubah|tidak|nggak).{0,20}(peduli|contact|balas)',
@@ -149,6 +220,11 @@ class TopicDetector:
                     r'(teman|sahabat|bestie).{0,30}(khianat|backing stab|lihat|gosip)',
                     r'(tidak|nggak).{0,25}(punya|ada).{0,20}(teman|sahabat|bestie)',
                     r'(ditinggal|diisolasi|diabaikan|dikucilkan).{0,25}(teman|grup|sahabat)',
+                    r'(teman|orang lain|mereka).{0,45}(circle|sirkel|grup)',
+                    r'(circle|sirkel|grup).{0,45}(masing-masing|sendiri)',
+                    r'(numpang ada|cuma ada|hanya numpang)',
+                    r'(nggak|tidak).{0,25}(tahu|tau).{0,35}(masuk|ikut).{0,20}(obrolan|percakapan|ngobrol)',
+                    r'(mereka|teman).{0,35}(ngobrol|bercanda).{0,35}(aku|saya).{0,20}(diam|bingung)',
                 ],
                 'confidence': 0.9
             },
@@ -249,7 +325,7 @@ class TopicDetector:
                 ],
                 'patterns': [
                     r'(masa depan|future|nanti).{0,40}(takut|khawatir|cemas|tidak yakin)',
-                    r'(tidak|nggak).{0,30}(tahu|paham|mengerti).{0,30}(apa|mana|akan jadi apa)',
+                    r'(tidak|nggak).{0,30}(tahu|paham|mengerti).{0,30}(arah hidup|tujuan|masa depan|akan jadi apa|mau jadi apa)',
                     r'(bingung|lost|tersesat).{0,30}(tentang|dengan).{0,20}(masa depan|arah)',
                     r'(takut|khawatir|cemas).{0,30}(gagal|salah|buruk|worst case)',
                     r'(tidak).{0,30}(punya|ada).{0,20}(rencana|tujuan|arah)',
@@ -264,6 +340,7 @@ class TopicDetector:
         Returns: (topic_name, confidence_score)
         """
         user_lower = user_message.lower()
+        weighted_scores = self._weighted_topic_scores(user_lower)
         best_topic = None
         best_confidence = 0
         
@@ -289,11 +366,49 @@ class TopicDetector:
             if confidence > 0:
                 confidence = min(confidence * topic_config['confidence'], 1.0)
             
+            confidence = min(confidence + weighted_scores.get(topic_name, 0), 1.0)
+
             if confidence > best_confidence:
                 best_confidence = confidence
                 best_topic = topic_name
         
+        if best_confidence < 0.25:
+            return None, best_confidence
+
         return best_topic, best_confidence
+
+    def _weighted_topic_scores(self, user_lower: str) -> Dict[str, float]:
+        scores = {topic: 0.0 for topic in self.topic_patterns.keys()}
+
+        for topic, signals in self.strong_topic_signals.items():
+            for signal in signals:
+                if signal in user_lower:
+                    scores[topic] += 0.25
+
+        for topic, signals in self.general_topic_signals.items():
+            for signal in signals:
+                if signal in user_lower:
+                    scores[topic] += 0.05
+
+        for topic, conflicts in self.topic_conflicts.items():
+            for signal in conflicts:
+                if signal in user_lower:
+                    scores[topic] -= 0.18
+
+        if ('teman' in user_lower or 'mereka' in user_lower) and ('ngobrol' in user_lower or 'obrolan' in user_lower):
+            scores['friendship'] += 0.35
+            scores['future'] -= 0.25
+
+        if ('di rumah' in user_lower or 'rumah' in user_lower) and ('dibanding' in user_lower or 'anak orang lain' in user_lower):
+            scores['family'] += 0.45
+            scores['future'] -= 0.25
+            scores['self_esteem'] -= 0.15
+
+        if ('circle' in user_lower or 'sirkel' in user_lower or 'numpang ada' in user_lower) and 'teman' in user_lower:
+            scores['friendship'] += 0.45
+            scores['appearance'] -= 0.25
+
+        return {topic: max(0.0, score) for topic, score in scores.items()}
 
 
 class SituationDetector:
@@ -435,9 +550,11 @@ class SituationDetector:
             
             # FAMILY
             'parent_pressure': {
-                'keywords': ['orang tua tekanan', 'ibu ayah marah'],
+                'keywords': ['orang tua tekanan', 'ibu ayah marah', 'dibandingkan', 'dibandingin', 'anak orang lain'],
                 'patterns': [
                     r'(orang tua|ibu|ayah).{0,30}(tekanan|pressure|marah)',
+                    r'(dibandingkan|dibandingin|dibanding).{0,40}(anak orang lain|orang lain)',
+                    r'(di rumah|rumah).{0,40}(dibandingkan|dibandingin|dibanding|dituntut)',
                 ],
             },
             'family_conflict': {
@@ -473,10 +590,21 @@ class SituationDetector:
                 ],
             },
             'no_friends': {
-                'keywords': ['tidak ada teman', 'sendirian'],
+                'keywords': ['tidak ada teman', 'sendirian', 'circle', 'sirkel', 'numpang ada'],
                 'patterns': [
                     r'(tidak|nggak).{0,20}ada.{0,20}(teman|friend)',
                     r'(sendirian|aja).{0,20}(terus|selalu)',
+                    r'(teman|orang lain|mereka).{0,45}(circle|sirkel|grup)',
+                    r'(numpang ada|cuma ada|hanya numpang)',
+                ],
+            },
+            'friendship_exclusion': {
+                'keywords': ['circle', 'sirkel', 'numpang ada', 'masuk obrolan', 'masuk percakapan', 'nggak tahu masuk'],
+                'patterns': [
+                    r'(circle|sirkel|grup).{0,45}(masing-masing|sendiri)',
+                    r'(numpang ada|cuma ada|hanya numpang)',
+                    r'(nggak|tidak).{0,25}(tahu|tau).{0,35}(masuk|ikut).{0,20}(obrolan|percakapan|ngobrol)',
+                    r'(mereka|teman).{0,35}(ngobrol|bercanda).{0,35}(aku|saya).{0,20}(diam|bingung)',
                 ],
             },
             
@@ -498,8 +626,9 @@ class SituationDetector:
             'uncertain_future': {
                 'keywords': ['tidak tahu masa depan', 'bingung mau apa'],
                 'patterns': [
-                    r'(tidak|nggak).{0,20}(tahu|mengerti|paham).{0,20}(apa|mana)',
-                    r'(bingung|lost|tersesat).{0,20}(mau|akan)',
+                    r'(tidak|nggak).{0,20}(tahu|mengerti|paham).{0,20}(arah hidup|tujuan|masa depan|mau jadi apa|akan jadi apa)',
+                    r'(bingung|lost|tersesat).{0,20}(mau|akan).{0,25}(jadi apa|ke mana|kemana|hidup|masa depan)',
+                    r'(hidup).{0,30}(arah mana|ke mana|kemana|tujuan)',
                 ],
             },
             'future_anxiety': {

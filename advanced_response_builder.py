@@ -412,6 +412,10 @@ class AdvancedResponseBuilder:
                 topic=analysis.topic,
                 situations=situations
             )
+
+        topic_response = self._build_topic_routed_response(analysis, user_message)
+        if topic_response:
+            return topic_response
         
         # V3: CHECK FOR THIRD MESSAGE RULE
         if self._should_give_interpretation(analysis) and analysis.intent_type != 'advice_seeking':
@@ -650,6 +654,9 @@ class AdvancedResponseBuilder:
         user_message: str,
         conversation_history: List[Dict]
     ) -> Optional[str]:
+        if analysis.topic in TOPIC_SOLUTION_KB and analysis.topic_confidence >= 0.65:
+            return analysis.topic
+
         combined_text = self._combined_recent_user_text(user_message, conversation_history)
         heuristic_topic = self._infer_solution_topic_by_keywords(combined_text)
         if heuristic_topic:
@@ -690,6 +697,45 @@ class AdvancedResponseBuilder:
             if any(signal in text for signal in signals):
                 return topic
         return None
+
+    def _build_topic_routed_response(self, analysis: AnalysisResult, user_message: str) -> str:
+        topic = analysis.topic
+        situations = [s[0] for s in analysis.situations]
+        text = user_message.lower()
+
+        if topic == 'friendship':
+            if 'friendship_exclusion' in situations or 'no_friends' in situations or any(signal in text for signal in ['circle', 'sirkel', 'numpang ada']):
+                if analysis.conversation_depth <= 2:
+                    return (
+                        "Rasanya sepi ya ketika orang lain seperti sudah punya tempat masing-masing, "
+                        "sementara kamu merasa cuma berada di pinggirnya. Yang bikin berat mungkin bukan sekadar jumlah teman, "
+                        "tapi belum ada rasa benar-benar diterima di lingkungan itu."
+                    )
+
+                return (
+                    "Kalau kamu sering diam karena bingung masuk dari mana, itu bukan berarti kamu membosankan atau tidak ingin bergabung. "
+                    "Mungkin kamu sedang terlalu hati-hati karena takut ucapanmu terasa canggung. Coba mulai dari satu orang yang paling terasa aman, "
+                    "lalu tanggapi satu bagian kecil dari obrolan. Kamu tidak harus langsung masuk ke satu kelompok sekaligus."
+                )
+
+        if topic == 'family':
+            if 'parent_pressure' in situations or any(signal in text for signal in ['dibanding', 'anak orang lain', 'di rumah']):
+                return (
+                    "Capek ya ketika rumah yang seharusnya jadi tempat istirahat justru membuat kamu terus merasa dibandingkan. "
+                    "Yang paling berat mungkin bukan cuma perkataannya, tapi karena usaha kamu terasa tidak benar-benar dilihat. "
+                    "Kalau situasinya cukup aman, pilih waktu yang lebih tenang untuk bilang bahwa perbandingan seperti itu bikin kamu makin kehilangan fokus. "
+                    "Kalau bicara langsung terasa sulit, mulai dari pesan singkat dulu."
+                )
+
+        if topic == 'future':
+            if 'uncertain_future' in situations or 'future_anxiety' in situations or any(signal in text for signal in ['arah hidup', 'masa depan', 'tujuan']):
+                return (
+                    "Bingung soal arah hidup memang bisa terasa besar, apalagi ketika teman-teman terlihat sudah punya tujuan masing-masing. "
+                    "Tapi kamu tidak harus menemukan jawaban seluruh hidup sekaligus. Mulai dari satu bidang yang ingin kamu coba, "
+                    "satu keterampilan kecil, atau satu pengalaman baru, lalu evaluasi pelan-pelan apakah arahnya cocok untuk kamu."
+                )
+
+        return ""
 
     def _combined_recent_user_text(self, user_message: str, conversation_history: List[Dict]) -> str:
         recent = []
@@ -930,11 +976,13 @@ class AdvancedResponseBuilder:
             # Family
             'family_conflict': "ada konflik keluarga yang membuat suasana rumah jadi tegang dan tidak nyaman",
             'parent_pressure': "orang tua memberi tekanan atau ekspektasi tinggi yang bikin kamu merasa terbeban",
+            'parent_unsupported': "dukungan dari keluarga terasa kurang, dan itu membuat kamu merasa usaha kamu tidak terlihat",
             
             # Social & Friends
             'no_friends': "merasa sendirian di tengah orang-orang yang punya circle mereka sendiri",
             'friend_conflict': "ada pertengkaran atau konflik dengan teman, dan itu bikin hubungan jadi awkward",
             'feeling_excluded': "merasa diabaikan atau dikucilkan dari grup atau lingkungan sosial",
+            'friendship_exclusion': "merasa tersisih dari obrolan atau circle teman, seolah kamu hanya numpang ada",
             
             # Finance
             'payment_issue': "ada beban finansial yang membuat kamu stres tentang bagaimana caranya",
@@ -1007,6 +1055,14 @@ class AdvancedResponseBuilder:
             return "kamu sedang mengalami kerja yang tidak sehat sampai stresnya terbawa ke rumah dan mengganggu tidur. Saran dari aku, buat batas jam kerja yang jelas, siapkan rutinitas untuk menutup hari, dan pertimbangkan apakah pekerjaan ini masih sepadan untuk kesehatan mental kamu."
         
         # ===== SINGLE SITUATIONS =====
+        if topic == 'friendship' or 'friendship_exclusion' in situations:
+            return "kamu sedang merasa belum punya tempat yang benar-benar aman di lingkungan teman. Saran dari aku, mulai dari satu orang yang paling terasa aman dan tanggapi satu bagian kecil dari obrolan, tanpa memaksa diri langsung masuk ke kelompok besar."
+
+        if topic == 'family' or 'parent_pressure' in situations:
+            return "kamu sedang menghadapi tekanan keluarga yang membuat usaha kamu terasa tidak dilihat. Saran dari aku, pilih waktu bicara yang lebih tenang, gunakan kalimat yang fokus pada perasaan kamu, atau mulai lewat pesan singkat kalau bicara langsung terasa sulit."
+
+        if topic == 'future' and ('uncertain_future' in situations or 'future_anxiety' in situations):
+            return "kamu sedang bingung soal arah hidup dan membandingkan perjalananmu dengan orang lain. Saran dari aku, jangan paksa diri menjawab semuanya sekaligus; pilih satu hal kecil untuk dicoba dulu, lalu evaluasi dari pengalaman itu."
         
         # EDUCATION TOPICS
         if 'exam_coming' in situations:

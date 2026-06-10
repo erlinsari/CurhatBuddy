@@ -202,25 +202,21 @@ class ReasoningEngine:
         
         # 1. DETECT TOPIC
         topic, topic_confidence = self.topic_detector.detect(user_message)
-        
-        # 1.5 FALLBACK: If no clear topic, use from previous user message
-        if (not topic or topic_confidence < 0.3) and conversation_history:
-            # Try to extract topic from previous user messages
-            for i in range(len(conversation_history) - 1, -1, -1):
-                prev_msg = conversation_history[i]
-                if prev_msg.get('role') == 'user':
-                    prev_topic, prev_confidence = self.topic_detector.detect(prev_msg.get('message', ''))
-                    if prev_topic and prev_confidence >= 0.3:
-                        topic = prev_topic
-                        topic_confidence = prev_confidence
-                        break
-        
+
         # 2. DETECT SITUATION(S)
         situations = self.situation_detector.detect(user_message)
-        
-        # 2.5 FALLBACK: If no situations in current message, use from previous user message
-        if not situations and conversation_history:
-            # Try to extract situations from previous user messages in history
+
+        previous_topic, previous_confidence = self._get_previous_topic(conversation_history)
+        topic, topic_confidence = self._resolve_active_topic(
+            current_topic=topic,
+            current_confidence=topic_confidence,
+            situations=situations,
+            previous_topic=previous_topic,
+            previous_confidence=previous_confidence,
+        )
+
+        # 2.5 FALLBACK: If no situations in current message, use previous only when topic is continuous.
+        if not situations and conversation_history and previous_topic and topic == previous_topic:
             for i in range(len(conversation_history) - 1, -1, -1):
                 prev_msg = conversation_history[i]
                 if prev_msg.get('role') == 'user':
@@ -281,6 +277,95 @@ class ReasoningEngine:
         analysis.fear_chain = self.build_fear_chain(analysis)
         
         return analysis
+
+    def _get_previous_topic(self, conversation_history: List[Dict]) -> Tuple[Optional[str], float]:
+        if not conversation_history:
+            return None, 0.0
+
+        for i in range(len(conversation_history) - 1, -1, -1):
+            prev_msg = conversation_history[i]
+            if prev_msg.get('role') != 'user':
+                continue
+            prev_topic, prev_confidence = self.topic_detector.detect(prev_msg.get('message', ''))
+            if prev_topic and prev_confidence >= 0.25:
+                return prev_topic, prev_confidence
+
+        return None, 0.0
+
+    def _resolve_active_topic(
+        self,
+        current_topic: Optional[str],
+        current_confidence: float,
+        situations: List[Tuple[str, float]],
+        previous_topic: Optional[str],
+        previous_confidence: float,
+    ) -> Tuple[Optional[str], float]:
+        situation_topic, situation_confidence = self._topic_from_situations(situations)
+
+        if situation_topic and situation_confidence >= 0.75:
+            if not current_topic or current_confidence < situation_confidence:
+                current_topic = situation_topic
+                current_confidence = situation_confidence
+
+        if not previous_topic:
+            return current_topic, current_confidence
+
+        if not current_topic or current_confidence < 0.3:
+            return previous_topic, max(previous_confidence * 0.85, 0.3)
+
+        if current_topic == previous_topic:
+            return current_topic, min(current_confidence + 0.12, 1.0)
+
+        if current_confidence >= previous_confidence + 0.12 or current_confidence >= 0.65:
+            return current_topic, current_confidence
+
+        return previous_topic, max(previous_confidence * 0.85, current_confidence)
+
+    def _topic_from_situations(self, situations: List[Tuple[str, float]]) -> Tuple[Optional[str], float]:
+        situation_topic_map = {
+            'breakup': 'relationship',
+            'relationship_distance': 'relationship',
+            'relationship_conflict': 'relationship',
+            'partner_cheating': 'relationship',
+            'exam_coming': 'education',
+            'bad_grades': 'education',
+            'school_payment': 'education',
+            'school_dropout': 'education',
+            'job_stress': 'career',
+            'job_conflict': 'career',
+            'job_loss': 'career',
+            'interview_fail': 'career',
+            'acne_problem': 'appearance',
+            'teeth_problem': 'appearance',
+            'weight_concern': 'appearance',
+            'beauty_insecurity': 'appearance',
+            'parent_pressure': 'family',
+            'family_conflict': 'family',
+            'parent_unsupported': 'family',
+            'friend_abandoned': 'friendship',
+            'friend_betrayal': 'friendship',
+            'friend_conflict': 'friendship',
+            'friendship_exclusion': 'friendship',
+            'no_friends': 'friendship',
+            'debt_problem': 'finance',
+            'insufficient_money': 'finance',
+            'uncertain_future': 'future',
+            'future_anxiety': 'future',
+            'sleep_problem': 'health',
+            'stress_health': 'health',
+        }
+
+        scores = {}
+        for situation, confidence in situations:
+            topic = situation_topic_map.get(situation)
+            if topic:
+                scores[topic] = max(scores.get(topic, 0.0), confidence)
+
+        if not scores:
+            return None, 0.0
+
+        topic, confidence = max(scores.items(), key=lambda item: item[1])
+        return topic, confidence
     
     def _select_response_mode(
         self,
