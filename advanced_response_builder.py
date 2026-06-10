@@ -16,6 +16,269 @@ from advice_support_builder import AdviceSupportBuilder
 from emotional_memory import EmotionalMemory
 
 
+TOPIC_SOLUTION_KB = {
+    'relationship': {
+        'default': (
+            "bedakan dulu mana fakta dan mana asumsi. Faktanya, ada perubahan yang kamu rasakan, "
+            "tapi alasan di balik perubahan itu masih perlu dibicarakan. Setelah lebih tenang, "
+            "coba sampaikan bahwa kamu merasa komunikasi kalian berbeda dan ingin tahu apakah ada sesuatu yang sedang terjadi."
+        ),
+        'situations': {
+            'relationship_distance': (
+                "jangan langsung menyimpulkan bahwa kamu penyebab semuanya. Catat dulu perubahan yang nyata, "
+                "misalnya chat makin singkat atau balasan makin lama. Setelah itu ajak bicara tanpa menuduh, "
+                "pakai kalimat seperti kamu merasa ada jarak dan ingin memahami apa yang sedang terjadi."
+            ),
+            'relationship_conflict': (
+                "jangan mulai pembicaraan saat emosi sedang tinggi. Pilih waktu yang lebih tenang, lalu fokus pada satu masalah utama. "
+                "Kalau pertengkaran terus berulang, lihat apakah tindakannya berubah setelah dibicarakan, bukan hanya janji."
+            ),
+            'breakup': (
+                "beri ruang dulu untuk menerima rasa kehilangan sebelum memaksa diri cepat baik-baik saja. "
+                "Kurangi hal yang membuat luka terus terbuka, lalu cari satu rutinitas kecil yang membantu kamu tetap berjalan hari ini."
+            ),
+        },
+        'followups': [
+            "mulai dari satu kalimat sederhana: apa yang berubah, bagaimana dampaknya ke kamu, dan apa yang kamu butuhkan dari dia.",
+            "kalau dia menghindar terus setelah dibicarakan, langkah berikutnya adalah menentukan batas supaya kamu tidak terus menunggu tanpa kejelasan.",
+        ],
+    },
+    'education': {
+        'default': (
+            "pisahkan dulu masalah belajar, tugas, dan administrasi. Untuk yang paling dekat, pilih materi atau tugas yang dampaknya terbesar. "
+            "Kalau ada urusan sekolah seperti pembayaran atau tenggat, cari kejelasan ke wali kelas, dosen, atau pihak sekolah."
+        ),
+        'situations': {
+            'exam_coming': (
+                "untuk sekarang jangan memikirkan seluruh kelulusan sekaligus. Pilih materi yang paling mungkin keluar atau paling belum kamu kuasai, "
+                "lalu belajar dalam blok pendek. Lebih baik punya bekal inti daripada panik memikirkan semua bab."
+            ),
+            'school_payment': (
+                "pisahkan belajar dan urusan pembayaran. Untuk administrasi, cari tahu tenggat dan pilihan yang tersedia, misalnya cicilan atau kelonggaran waktu. "
+                "Kalau perlu, minta bantuan orang yang bisa bicara dengan pihak sekolah."
+            ),
+            'bad_grades': (
+                "lihat dulu penyebab nilainya turun: kurang paham materi, kurang latihan, atau waktu belajar yang berantakan. "
+                "Dari situ baru tentukan satu perbaikan paling kecil untuk ujian atau tugas berikutnya."
+            ),
+        },
+        'followups': [
+            "mulai dari daftar tiga hal: materi paling penting, waktu belajar yang tersedia, dan siapa yang bisa dimintai kejelasan.",
+            "kalau waktunya mepet, jangan mengejar sempurna. Kejar bagian yang paling mungkin menambah nilai dulu.",
+        ],
+    },
+    'career': {
+        'default': (
+            "kamu tidak perlu mencoba semua arah sekaligus. Pilih dulu satu jenis posisi yang paling masuk akal untuk kamu incar, "
+            "rapikan CV sesuai posisi itu, lalu cek keterampilan apa yang paling sering diminta dari lowongan serupa."
+        ),
+        'situations': {
+            'job_search_pressure': (
+                "mulai dari satu posisi prioritas, bukan semua lowongan sekaligus. Sesuaikan CV untuk posisi itu, "
+                "buat target lamaran realistis, lalu evaluasi setiap minggu apakah masalahnya kurang peluang atau ada keterampilan yang perlu diperkuat."
+            ),
+            'interview_fail': (
+                "satu proses interview yang gagal belum cukup untuk menyimpulkan kamu tidak mampu. Coba catat bagian yang terasa lemah, "
+                "latih jawaban untuk bagian itu, dan kalau memungkinkan minta masukan dari orang yang paham rekrutmen."
+            ),
+            'career_confusion': (
+                "pecah kebingungan karier menjadi tiga bagian: kemampuan yang kamu punya, minat yang masih mau dicoba, dan peluang yang benar-benar tersedia. "
+                "Dari situ pilih satu eksperimen kecil, bukan keputusan hidup yang besar sekaligus."
+            ),
+            'job_stress': (
+                "bedakan apakah masalahnya beban kerja, lingkungan, atau arah karier yang tidak berkembang. "
+                "Kalau masih bisa dibicarakan, siapkan contoh konkret sebelum bicara dengan atasan. Kalau tidak membaik, mulai petakan opsi pindah secara bertahap."
+            ),
+        },
+        'followups': [
+            "mulai dari tiga kolom: posisi yang diincar, syarat yang sering muncul, dan bagian CV yang perlu disesuaikan.",
+            "kalau masih bingung, pilih satu posisi dulu selama satu minggu untuk diuji. Setelah itu evaluasi, bukan menilai seluruh masa depan dari satu hari.",
+        ],
+    },
+    'finance': {
+        'default': (
+            "langkah pertama bukan memikirkan semua masalah uang sekaligus, tapi mengurutkannya berdasarkan tenggat dan risiko. "
+            "Catat kewajiban yang paling mendesak, lalu hubungi pihak terkait untuk menanyakan kelonggaran waktu atau pilihan cicilan."
+        ),
+        'situations': {
+            'bill_pressure': (
+                "catat semua tagihan dengan tiga hal: jumlah, tanggal jatuh tempo, dan akibat kalau terlambat. "
+                "Dahulukan yang risikonya paling besar, lalu tanyakan apakah ada kelonggaran waktu atau cicilan untuk yang belum sanggup dibayar penuh."
+            ),
+            'insufficient_money': (
+                "pisahkan kebutuhan dasar dari pembayaran yang masih bisa dinegosiasikan. Setelah itu, lihat mana yang harus dibayar sebagian dulu "
+                "dan mana yang perlu dibicarakan ke pihak terkait supaya kamu tidak menanggung semuanya sendirian."
+            ),
+            'school_payment': (
+                "cari kejelasan tenggat pembayaran dan tanyakan pilihan cicilan atau penundaan. Kalau kamu masih sekolah atau kuliah, "
+                "hubungi wali kelas, dosen, administrasi, atau orang yang bisa membantu bicara."
+            ),
+            'debt_problem': (
+                "urutkan utang dari yang paling mendesak dan paling berisiko. Jangan membuat janji bayar baru sebelum tahu kemampuan nyata bulan ini. "
+                "Lebih baik komunikasikan rencana kecil yang bisa ditepati daripada diam sampai makin menumpuk."
+            ),
+        },
+        'followups': [
+            "mulai dari tiga kolom sederhana: nama tagihan, tanggal jatuh tempo, dan jumlahnya. Setelah itu tandai mana yang risikonya paling besar.",
+            "kalau uangnya belum cukup, tentukan pembayaran minimum yang paling aman dulu, lalu komunikasikan sisanya sebelum jatuh tempo.",
+        ],
+    },
+    'family': {
+        'default': (
+            "pilih waktu bicara saat suasana lebih tenang, bukan ketika rumah sedang panas. Pakai kalimat yang fokus pada perasaan dan dampaknya ke kamu. "
+            "Kalau bicara langsung terasa sulit, mulai dari pesan tertulis supaya maksudmu lebih teratur."
+        ),
+        'situations': {
+            'parent_pressure': (
+                "kamu tidak harus membalas tekanan dengan konfrontasi langsung. Kalau aman, sampaikan bahwa perbandingan justru membuat kamu kehilangan fokus. "
+                "Kalau bicara langsung mudah berubah jadi pertengkaran, tulis pesan singkat dulu."
+            ),
+            'family_conflict': (
+                "jangan memulai pembicaraan saat konflik sedang naik. Tunggu suasana turun, lalu bahas satu hal paling penting saja. "
+                "Kalau situasinya tidak aman atau ada kekerasan, prioritaskan mencari bantuan dari orang dewasa atau pihak yang bisa melindungi."
+            ),
+            'parent_unsupported': (
+                "coba jelaskan usaha yang sudah kamu lakukan dengan contoh konkret, bukan hanya membela diri. "
+                "Kalau tetap tidak didengar, cari satu orang keluarga yang lebih aman untuk jadi perantara."
+            ),
+        },
+        'followups': [
+            "mulai dari pesan pendek seperti: aku jadi sulit fokus kalau terus dibandingkan, aku butuh dibicarakan dengan lebih tenang.",
+            "kalau kamu takut dimarahi, jangan mulai dari percakapan panjang. Mulai dari satu kalimat inti dan pilih waktu yang aman.",
+        ],
+    },
+    'friendship': {
+        'default': (
+            "jangan memaksa diri langsung masuk ke kelompok besar. Mulai dari satu orang yang paling terasa aman, "
+            "lalu bangun interaksi kecil yang konsisten lewat topik sederhana seperti tugas, hobi, atau kegiatan bersama."
+        ),
+        'situations': {
+            'no_friends': (
+                "mulai dari satu orang dulu, bukan mencari banyak teman sekaligus. Cari kesempatan ngobrol kecil yang berulang, "
+                "karena kedekatan biasanya tumbuh dari interaksi yang konsisten."
+            ),
+            'friendship_exclusion': (
+                "kalau sulit masuk obrolan kelompok, coba mulai dari percakapan satu lawan satu. "
+                "Pakai topik yang ringan dan nyata, misalnya tugas, kegiatan, atau hal yang sama-sama kalian lihat."
+            ),
+            'friend_abandoned': (
+                "lihat dulu apakah mereka benar-benar menjauh atau ritme pertemanannya berubah. Kalau ada satu orang yang masih terasa aman, "
+                "mulai dari menanyakan kabar atau mengajak ngobrol ringan tanpa menuntut kedekatan langsung kembali."
+            ),
+            'friend_conflict': (
+                "kalau konflik masih panas, beri jeda dulu. Setelah itu, bicarakan satu kejadian yang spesifik dan dampaknya ke kamu, "
+                "bukan menumpuk semua kesalahan sekaligus."
+            ),
+        },
+        'followups': [
+            "mulai dari satu pesan ringan ke satu orang, misalnya menanyakan tugas, kabar, atau hal yang kalian sama-sama minati.",
+            "kalau kelompok besar terasa berat, jangan mulai dari sana. Mulai dari interaksi kecil yang risikonya lebih rendah.",
+        ],
+    },
+    'self_esteem': {
+        'default': (
+            "coba bedakan antara mengevaluasi diri dan menghukum diri. Kamu boleh melihat hal yang perlu diperbaiki, "
+            "tapi jangan menjadikan satu kekurangan sebagai kesimpulan bahwa seluruh diri kamu tidak cukup baik."
+        ),
+        'situations': {
+            'social_anxiety_shame': (
+                "mulai dari mengurangi cara bicara yang menghukum diri sendiri. Kalau takut dinilai, pilih situasi sosial kecil dulu, "
+                "lalu evaluasi berdasarkan fakta, bukan asumsi terburuk."
+            ),
+            'beauty_insecurity': (
+                "pisahkan penampilan dari nilai diri. Hal yang bisa dirawat boleh dirawat pelan-pelan, tapi jangan jadikan itu ukuran apakah kamu layak diterima."
+            ),
+        },
+        'followups': [
+            "tulis satu hal kecil yang kamu lakukan dengan baik hari ini. Bukan untuk memaksa positif, tapi untuk melatih cara menilai diri lebih adil.",
+            "kalau pikiranmu bilang kamu gagal total, tanya balik: bagian mana yang faktanya perlu diperbaiki, dan bagian mana yang cuma hukuman ke diri sendiri?",
+        ],
+    },
+    'appearance': {
+        'default': (
+            "pisahkan kondisi fisik dari nilai diri kamu. Hal seperti jerawat, bentuk tubuh, atau gigi bisa dirawat secara realistis, "
+            "tapi itu bukan ukuran apakah kamu layak diterima. Mulai dari perawatan yang masuk akal dan kembali ke situasi sosial secara bertahap."
+        ),
+        'situations': {
+            'acne_problem': (
+                "rawat jerawat dengan langkah yang realistis dan konsisten, tapi jangan biarkan jerawat menjadi kesimpulan tentang nilai diri kamu. "
+                "Kurangi kebiasaan memeriksa kekurangan terus-menerus, lalu mulai bertemu orang dari situasi yang paling nyaman."
+            ),
+            'weight_concern': (
+                "kalau ingin berubah, mulai dari kebiasaan yang sehat dan tidak menghukum tubuh. Jangan ukur nilai diri dari angka atau komentar orang."
+            ),
+            'teeth_problem': (
+                "kalau masalah gigi mengganggu fungsi atau percaya diri, pertimbangkan konsultasi bertahap saat memungkinkan. "
+                "Sambil itu, jangan menganggap satu bagian fisik sebagai keseluruhan diri kamu."
+            ),
+        },
+        'followups': [
+            "mulai dari satu situasi sosial yang paling aman dulu, bukan langsung memaksa diri tampil di tempat yang membuat kamu sangat cemas.",
+            "pilih satu hal yang bisa dirawat minggu ini, lalu batasi kebiasaan memeriksa kekurangan berulang-ulang.",
+        ],
+    },
+    'loneliness': {
+        'default': (
+            "kamu tidak perlu langsung mencari banyak orang. Mungkin yang kamu butuhkan adalah satu hubungan yang terasa aman. "
+            "Coba mulai berbagi satu hal kecil kepada orang yang paling kamu percaya, lalu lihat bagaimana responsnya."
+        ),
+        'situations': {
+            'no_friends': (
+                "mulai dari satu koneksi yang paling mungkin, bukan mengejar banyak kenalan. Bagikan sedikit dulu, "
+                "karena kedekatan yang aman biasanya tumbuh bertahap."
+            ),
+            'sleep_problem': (
+                "kalau rasa sepi sampai mengganggu tidur, coba keluarkan sebagian isi kepala lewat catatan singkat sebelum tidur, "
+                "lalu pilih satu orang yang mungkin bisa kamu hubungi di waktu yang lebih aman."
+            ),
+        },
+        'followups': [
+            "mulai dari cerita satu bagian kecil saja, misalnya: akhir-akhir ini aku lagi berat dan butuh ditemani sebentar.",
+            "kalau takut dianggap berlebihan, pilih orang yang paling pernah merespons kamu dengan tenang, bukan orang yang paling ramai di sekitar kamu.",
+        ],
+    },
+    'health': {
+        'default': (
+            "jangan langsung menyimpulkan diagnosis sendiri. Catat gejala, sejak kapan muncul, seberapa sering terjadi, dan apakah mengganggu aktivitas. "
+            "Kalau berlanjut, makin berat, atau terasa darurat, sebaiknya cari bantuan tenaga kesehatan atau bantuan langsung."
+        ),
+        'situations': {
+            'sleep_problem': (
+                "catat dulu pola tidurnya: jam mulai sulit tidur, apa yang dipikirkan, dan dampaknya besok hari. "
+                "Kalau berlangsung terus atau sangat mengganggu aktivitas, pertimbangkan konsultasi ke tenaga kesehatan."
+            ),
+            'stress_health': (
+                "catat gejala fisik, durasi, dan pemicunya. Aku tidak bisa menyimpulkan penyakit dari chat, jadi kalau gejala menetap, memburuk, "
+                "atau mengganggu aktivitas, lebih aman diperiksa ke tenaga kesehatan."
+            ),
+        },
+        'followups': [
+            "mulai dari catatan sederhana: gejala apa, muncul sejak kapan, seberapa sering, dan apa dampaknya ke aktivitas.",
+            "kalau ada nyeri berat, sesak, pingsan, keinginan menyakiti diri, atau kondisi terasa darurat, cari bantuan langsung sekarang.",
+        ],
+    },
+    'future': {
+        'default': (
+            "kamu tidak perlu langsung menemukan jawaban untuk seluruh masa depan. Pilih satu bidang yang membuat kamu penasaran, "
+            "coba satu langkah kecil yang bisa dievaluasi, lalu lihat apakah arahnya cocok atau perlu diganti."
+        ),
+        'situations': {
+            'future_anxiety': (
+                "jangan memaksa diri menjawab seluruh masa depan sekaligus. Buat target pendek yang bisa diukur, "
+                "misalnya mencoba satu kegiatan, satu keterampilan, atau satu percakapan dengan orang yang lebih berpengalaman."
+            ),
+            'uncertain_future': (
+                "ubah pertanyaan besar menjadi percobaan kecil. Bukan 'hidupku harus jadi apa', tapi 'hal apa yang bisa aku coba minggu ini untuk mengenal arahku lebih baik'."
+            ),
+        },
+        'followups': [
+            "mulai dari satu daftar kecil: bidang yang bikin penasaran, keterampilan yang ingin dicoba, dan langkah yang bisa dilakukan minggu ini.",
+            "kalau kamu merasa tertinggal, kurangi dulu membandingkan timeline. Fokus ke percobaan kecil yang bisa memberi data tentang arahmu.",
+        ],
+    },
+}
+
+
 class AdvancedResponseBuilder:
     """
     Build contextually intelligent responses based on comprehensive analysis.
@@ -25,6 +288,7 @@ class AdvancedResponseBuilder:
         self.reasoning_engine = ReasoningEngine()
         self.advice_builder = AdviceSupportBuilder()
         self.emotional_memory = EmotionalMemory()
+        self.solution_fingerprints: List[str] = []
         
         # Situation to Indonesian translation for natural language
         self.situation_translations = {
@@ -40,6 +304,17 @@ class AdvancedResponseBuilder:
             'relationship_conflict': 'konflik hubungan',
             'weight_concern': 'masalah berat badan',
             'family_conflict': 'konflik keluarga',
+            'insufficient_money': 'uang yang belum cukup untuk semua tagihan',
+            'bill_pressure': 'tagihan yang menumpuk',
+            'debt_problem': 'utang yang menekan',
+            'parent_pressure': 'tekanan dan perbandingan dari keluarga',
+            'friendship_exclusion': 'rasa tersisih dari lingkungan teman',
+            'job_search_pressure': 'tekanan mencari kerja',
+            'career_confusion': 'kebingungan arah kerja',
+            'future_anxiety': 'kecemasan tentang masa depan',
+            'uncertain_future': 'ketidakpastian arah hidup',
+            'relationship_distance': 'perubahan jarak dalam hubungan',
+            'stress_health': 'keluhan tubuh yang dipengaruhi stres',
         }
         
         # Response templates for each mode
@@ -104,6 +379,15 @@ class AdvancedResponseBuilder:
         # 3. VALIDATE ANALYSIS
         if not self.reasoning_engine.validate_analysis(analysis):
             return self._get_fallback_response(user_message)
+
+        if self._is_solution_request(user_message, analysis):
+            topic_solution = self._build_topic_specific_solution(
+                analysis=analysis,
+                user_message=user_message,
+                conversation_history=conversation_history
+            )
+            if topic_solution:
+                return topic_solution
         
         # 3.5 PHASE 3: Attach story context to analysis
         analysis.story_arc = story_arc if story_arc.get('has_story') else None
@@ -322,6 +606,197 @@ class AdvancedResponseBuilder:
         
         response = " ".join(narrative)
         return response if response.strip() else self._get_fallback_response(user_message)
+
+    def _is_solution_request(self, user_message: str, analysis: AnalysisResult) -> bool:
+        text = user_message.lower()
+        signals = [
+            'harus gimana', 'harus bagaimana', 'aku harus apa', 'harus apa',
+            'menurut kamu aku harus', 'solusinya apa', 'solusi apa',
+            'minta saran', 'kasih saran', 'gimana caranya', 'bagaimana caranya',
+            'mulai dari mana', 'apa yang harus aku lakukan', 'apa yang harus kulakukan',
+            'aku harus bayar yang mana', 'harus mulai dari mana',
+        ]
+        return (
+            analysis.intent == 'advice_seeking'
+            or analysis.intent_type == 'advice_seeking'
+            or any(signal in text for signal in signals)
+        )
+
+    def _build_topic_specific_solution(
+        self,
+        analysis: AnalysisResult,
+        user_message: str,
+        conversation_history: List[Dict]
+    ) -> str:
+        topic = self._resolve_solution_topic(analysis, user_message, conversation_history)
+        if topic not in TOPIC_SOLUTION_KB:
+            return self._build_contextual_solution_fallback(user_message)
+
+        combined_text = self._combined_recent_user_text(user_message, conversation_history)
+        situations = self._resolve_solution_situations(analysis, combined_text)
+        solution_data = TOPIC_SOLUTION_KB[topic]
+        selected_solution = self._select_solution_text(solution_data, situations)
+        selected_solution = self._avoid_repeated_solution(solution_data, selected_solution)
+        selected_solution = self._capitalize_solution(selected_solution)
+
+        detail = self._solution_detail(topic, situations, combined_text)
+        response = f"Menurut aku {detail}. {selected_solution}"
+        response = self._clean_solution_language(response)
+        return response if response.strip() else self._build_contextual_solution_fallback(user_message)
+
+    def _resolve_solution_topic(
+        self,
+        analysis: AnalysisResult,
+        user_message: str,
+        conversation_history: List[Dict]
+    ) -> Optional[str]:
+        combined_text = self._combined_recent_user_text(user_message, conversation_history)
+        heuristic_topic = self._infer_solution_topic_by_keywords(combined_text)
+        if heuristic_topic:
+            return heuristic_topic
+
+        if analysis.topic in TOPIC_SOLUTION_KB and analysis.topic_confidence >= 0.35:
+            return analysis.topic
+
+        topic, confidence = self.reasoning_engine.topic_detector.detect(combined_text)
+        if topic in TOPIC_SOLUTION_KB and confidence >= 0.12:
+            return topic
+
+        for msg in reversed(conversation_history or []):
+            if msg.get('role') != 'user':
+                continue
+            topic, confidence = self.reasoning_engine.topic_detector.detect(msg.get('message', ''))
+            if topic in TOPIC_SOLUTION_KB and confidence >= 0.12:
+                return topic
+
+        return analysis.topic
+
+    def _infer_solution_topic_by_keywords(self, combined_text: str) -> Optional[str]:
+        text = combined_text.lower()
+        topic_signals = [
+            ('relationship', ['pacar', 'pasangan', 'gebetan', 'mantan', 'chat singkat', 'lama bales', 'hubungan']),
+            ('education', ['ujian', 'tugas', 'sekolah', 'kuliah', 'nilai', 'belajar', 'dosen', 'wali kelas']),
+            ('career', ['kerja', 'pekerjaan', 'lamaran', 'cv', 'interview', 'karier', 'karir', 'nganggur']),
+            ('finance', ['tagihan', 'utang', 'hutang', 'cicilan', 'uang', 'duit', 'bayar', 'pemasukan', 'penghasilan']),
+            ('self_esteem', ['nggak layak', 'gak layak', 'tidak layak', 'nggak cukup', 'minder', 'percaya diri', 'kalah dibanding']),
+            ('family', ['orang tua', 'ayah', 'ibu', 'keluarga', 'rumah', 'anak orang lain', 'dibandingkan', 'dibanding']),
+            ('loneliness', ['tetap merasa sendiri', 'punya teman tapi', 'tempat cerita', 'dianggap berlebihan', 'takut cerita', 'merasa sendiri', 'kesepian']),
+            ('friendship', ['circle', 'sirkel', 'numpang ada', 'masuk obrolan', 'dikucilkan', 'pertemanan', 'teman-teman']),
+            ('appearance', ['jerawat', 'gendut', 'kurus', 'gigi', 'wajah', 'penampilan', 'malu ketemu']),
+            ('health', ['susah tidur', 'sulit tidur', 'badan', 'gejala', 'penyakit', 'dokter', 'kesehatan']),
+            ('future', ['masa depan', 'arah hidup', 'salah jalan', 'tujuan', 'tertinggal']),
+        ]
+        for topic, signals in topic_signals:
+            if any(signal in text for signal in signals):
+                return topic
+        return None
+
+    def _combined_recent_user_text(self, user_message: str, conversation_history: List[Dict]) -> str:
+        recent = []
+        for msg in reversed(conversation_history or []):
+            if msg.get('role') == 'user':
+                recent.append(msg.get('message', ''))
+            if len(recent) >= 2:
+                break
+        return " ".join(list(reversed(recent)) + [user_message])
+
+    def _resolve_solution_situations(self, analysis: AnalysisResult, combined_text: str) -> List[str]:
+        situation_scores = {}
+        for situation, score in analysis.situations:
+            situation_scores[situation] = max(situation_scores.get(situation, 0), score)
+        for situation, score in self.reasoning_engine.situation_detector.detect(combined_text):
+            situation_scores[situation] = max(situation_scores.get(situation, 0), score * 0.95)
+        return [
+            situation for situation, _ in sorted(
+                situation_scores.items(),
+                key=lambda item: item[1],
+                reverse=True
+            )
+        ]
+
+    def _select_solution_text(self, solution_data: Dict, situations: List[str]) -> str:
+        for situation in situations:
+            if situation in solution_data.get('situations', {}):
+                return solution_data['situations'][situation]
+        return solution_data.get('default', '')
+
+    def _avoid_repeated_solution(self, solution_data: Dict, selected_solution: str) -> str:
+        fingerprint = self._solution_fingerprint(selected_solution)
+        if fingerprint not in self.solution_fingerprints:
+            self.solution_fingerprints.append(fingerprint)
+            self.solution_fingerprints = self.solution_fingerprints[-8:]
+            return selected_solution
+
+        for followup in solution_data.get('followups', []):
+            followup_fingerprint = self._solution_fingerprint(followup)
+            if followup_fingerprint not in self.solution_fingerprints:
+                self.solution_fingerprints.append(followup_fingerprint)
+                self.solution_fingerprints = self.solution_fingerprints[-8:]
+                return followup
+
+        return selected_solution
+
+    def _solution_fingerprint(self, text: str) -> str:
+        words = re.sub(r'\W+', ' ', text.lower()).strip().split()
+        return " ".join(words[:16])
+
+    def _capitalize_solution(self, text: str) -> str:
+        text = text.strip()
+        if not text:
+            return text
+        return text[:1].upper() + text[1:]
+
+    def _solution_detail(self, topic: str, situations: List[str], combined_text: str) -> str:
+        if topic == 'relationship':
+            return "masalah utamanya adalah perubahan sikap atau komunikasi yang bikin kamu merasa hubungan ini tidak seaman dulu"
+        if topic == 'education':
+            return "yang perlu kamu hadapi bukan semua beban sekolah sekaligus, tapi bagian yang paling dekat dan paling mendesak"
+        if topic == 'career':
+            return "kamu sedang butuh arah kerja yang lebih jelas, bukan sekadar disuruh terus berusaha tanpa rencana"
+        if topic == 'finance':
+            return "masalah uang ini bikin kamu merasa tidak aman karena kewajiban terus menumpuk sementara jalan keluarnya belum jelas"
+        if topic == 'family':
+            return "tekanan keluarga ini perlu dibahas dengan cara yang aman, karena kamu sudah cukup lama menahan dampaknya sendiri"
+        if topic == 'friendship':
+            return "masalahnya ada pada cara membangun kedekatan sosial yang terasa aman, bukan pada nilai diri kamu sebagai teman"
+        if topic == 'self_esteem':
+            return "yang sedang berat adalah cara kamu menilai diri sendiri terlalu keras"
+        if topic == 'appearance':
+            return "yang perlu dijaga adalah supaya kondisi fisik tidak berubah menjadi kesimpulan tentang nilai diri kamu"
+        if topic == 'loneliness':
+            return "yang kamu butuhkan bukan sekadar ramai di sekitar, tapi koneksi yang terasa aman untuk berbagi"
+        if topic == 'health':
+            return "keluhan tubuh atau tidur ini perlu ditangani hati-hati tanpa langsung menyimpulkan diagnosis sendiri"
+        if topic == 'future':
+            return "kamu tidak perlu menjawab seluruh masa depan sekaligus"
+        return "situasi ini perlu dipecah supaya langkah berikutnya lebih jelas"
+
+    def _clean_solution_language(self, response: str) -> str:
+        replacements = {
+            'support': 'dukungan',
+            'trust': 'percaya',
+            'capable': 'mampu',
+            'vicious cycle': 'pola yang berulang',
+            'insufficient_money': 'masalah uang',
+            'uncertainty': 'ketidakpastian',
+            'fear_of_abandonment': 'takut ditinggalkan',
+            'emotional_exhaustion': 'kelelahan emosional',
+            'self_esteem_issue': 'cara menilai diri sendiri',
+            'relationship_distress': 'tekanan dalam hubungan',
+            'pattern': 'pola',
+        }
+        for source, target in replacements.items():
+            response = re.sub(re.escape(source), target, response, flags=re.IGNORECASE)
+        return response
+
+    def _build_contextual_solution_fallback(self, user_message: str) -> str:
+        detail = user_message.strip()
+        if len(detail) > 90:
+            detail = detail[:87].rstrip() + "..."
+        return (
+            f"Menurut aku bagian tentang '{detail}' perlu dipecah dulu supaya tidak terasa seperti satu beban besar. "
+            "Coba tulis satu hal yang paling mendesak, satu hal yang masih bisa menunggu, dan satu orang atau pihak yang bisa kamu hubungi untuk mendapat kejelasan."
+        )
     
     def _build_advice_response(self, analysis: AnalysisResult, user_message: str) -> str:
         """
@@ -529,7 +1004,7 @@ class AdvancedResponseBuilder:
         
         # Job Stress + Sleep: SPECIFIC
         if 'job_stress' in situations and 'sleep_problem' in situations:
-            return "kamu sedang mengalami kerja yang toxic yang literally membawa stress sampai rumah dan mencegah tidur, yang membuat kamu exhausted dan nggak bisa perform baik. Saran dari aku kamu harus set firm boundary: work stops at jam X, create wind-down ritual, dan consider apakah job ini worth your mental health."
+            return "kamu sedang mengalami kerja yang tidak sehat sampai stresnya terbawa ke rumah dan mengganggu tidur. Saran dari aku, buat batas jam kerja yang jelas, siapkan rutinitas untuk menutup hari, dan pertimbangkan apakah pekerjaan ini masih sepadan untuk kesehatan mental kamu."
         
         # ===== SINGLE SITUATIONS =====
         
@@ -551,14 +1026,14 @@ class AdvancedResponseBuilder:
         
         # CAREER TOPICS
         if 'job_stress' in situations:
-            return "kamu sedang mengalami burnout dari pekerjaan yang toxic dan demanding, dan ini already mempengaruhi kesehatan mental kamu. Saran dari aku kamu harus set boundary yang jelas antara jam kerja dan waktu pribadi, jangan bawa stress kerja pulang."
+            return "kamu sedang mengalami burnout dari pekerjaan yang menekan, dan ini sudah memengaruhi kesehatan mental kamu. Saran dari aku, buat batas yang jelas antara jam kerja dan waktu pribadi, lalu kurangi membawa stres kerja ke rumah."
         
         if 'job_conflict' in situations:
             return "kamu sedang mengalami konflik dengan atasan atau rekan kerja yang membuat lingkungan kerja tidak nyaman. Saran dari aku kamu harus coba komunikasi yang jelas atau pertimbangkan mencari lingkungan kerja yang lebih supportive."
         
         if 'interview_fail' in situations:
             if fear == 'fear_of_inadequacy':
-                return "kamu sedang mengalami self-doubt setelah interview gagal, dan ini membuat kamu question kemampuan diri sendiri. Saran dari aku kamu harus ingat bahwa satu interview gagal bukan berarti kamu tidak capable - coba lagi dengan lessons learned."
+                return "kamu sedang meragukan diri setelah interview gagal, dan itu membuat kamu mempertanyakan kemampuan sendiri. Saran dari aku, ingat bahwa satu interview gagal bukan berarti kamu tidak mampu. Catat pelajarannya, lalu coba lagi dengan persiapan yang lebih jelas."
             return "kamu sedang mengalami kekecewaan karena interview tidak berhasil. Saran dari aku kamu harus minta feedback, improve, dan terus apply ke tempat lain tanpa give up."
         
         # RELATIONSHIP TOPICS
@@ -645,8 +1120,7 @@ class AdvancedResponseBuilder:
             if sit in self.situation_translations:
                 situation_names.append(self.situation_translations[sit])
             else:
-                # Fallback: replace underscores with spaces
-                situation_names.append(sit.replace('_', ' '))
+                situation_names.append("situasi yang sedang kamu hadapi")
         
         # Build natural reflection based on number of situations
         if len(situation_names) == 1:
@@ -655,7 +1129,7 @@ class AdvancedResponseBuilder:
         else:
             # Multiple situations: acknowledge the overwhelm
             sit_str = " dan ".join(situation_names)
-            return f"Jadi {sit_str}. Itu bersamaan, no wonder kamu merasa kewalahan."
+            return f"Jadi {sit_str}. Itu datang bersamaan, wajar kalau kamu merasa kewalahan."
     
     def _acknowledge_emotion(self, emotion: str) -> str:
         """Acknowledge the primary emotion"""
@@ -913,7 +1387,7 @@ class AdvancedResponseBuilder:
         if situation == 'exam_coming':
             return [
                 "1. Buat jadwal study yang realistis - fokus ke materi yang paling challenging.",
-                "2. Praktek dengan soal-soal, bukan hanya baca teori. Hands-on learning lebih effective.",
+                "2. Latihan dengan soal-soal, bukan hanya baca teori. Belajar aktif biasanya lebih efektif.",
                 "3. Jamin tidur cukup malam sebelum ujian - otak yang fresh lebih absorb informasi."
             ]
         

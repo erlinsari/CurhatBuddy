@@ -1302,7 +1302,7 @@ class DynamicResponseBuilder:
                 # REVISED: Less "cerita lagi", more emotional validation
                 "\n\nAda yang ingin kamu ungkapin lebih dari ini?",
                 "\n\nRasanya ada lebih banyak yang ingin keluar dari hati kamu.",
-                "\n\nTake your time - ada yang kamu perlu keluarkan, right?",
+                "\n\nPelan-pelan saja, kayaknya ada yang perlu kamu keluarkan.",
                 # Maksimal 3 follow-up yang lebih natural
             ]
             if follow_ups:
